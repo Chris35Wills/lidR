@@ -5,7 +5,7 @@
 \title{Find the flighlines hulls}
 \usage{
 catalog_flightlines(ctg, concavity = 2, length_threshold = 50,
-  density = 0.1)
+  density = 0.2)
 }
 \arguments{
 \item{ctg}{A \link[lidR:catalog]{LAScatalog} object.}
@@ -18,8 +18,8 @@ threshold, it stops being considered for further detalization. Higher values res
 
 \item{density}{numeric. To compute the concave hull of each flighline in a reasonnable timeframe and using
 a little amount of memory, only a random fraction of the point is loaded. This number represents the
-number of points point per square unit actually loaded. Default is 0.1 i.e. approximately 0.1 pt per
-square meter. This is enought to get a fairly accurate hulls (~ 1 point each 3 meters).}
+number of points point per square unit actually loaded. Default is 0.2 i.e. approximately 0.2 pt per
+square meter. This is enought to get a fairly accurate hulls (~ 1 point each 2 meters).}
 }
 \value{
 A \code{SpatialPolygonDataFrame}.
@@ -40,7 +40,7 @@ the \link[concaveman:concaveman]{concaveman} function which itself is a wrapper 
 }
 \examples{
 \dontrun{
-# Using file for which the PointSourceID is properly populated
+# Using files for which the PointSourceID is properly populated
 ctg = catalog("folder/")
 by_file(ctg) = TRUE
 buffer(ctg) = 5

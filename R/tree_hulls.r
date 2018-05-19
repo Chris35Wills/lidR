@@ -8,7 +8,7 @@
 #
 # Copyright 2018 Jean-Romain Roussel
 #
-# This file is part of rlas R package.
+# This file is part of lidR R package.
 #
 # rlas is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

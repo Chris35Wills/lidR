@@ -8,7 +8,7 @@
 #
 # Copyright 2018 Jean-Romain Roussel
 #
-# This file is part of rlas R package.
+# This file is part of lidR R package.
 #
 # rlas is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,7 +36,13 @@ lasaggregatepolygons = function(las, type, concavity, length_threshold, by)
 
   data.table::setnames(dt, names(dt), c(by, "polygon"))
 
-  spoly = sp::SpatialPolygons(dt$polygon)
+  polygons = dt$polygon
+  polygons = polygons[!sapply(polygons, is.null)]
+
+  if (length(polygons) == 0)
+    return(NULL)
+
+  spoly = sp::SpatialPolygons(polygons)
 
   for (i in 1:length(spoly)) spoly@polygons[[i]]@ID = as.character(i)
 
