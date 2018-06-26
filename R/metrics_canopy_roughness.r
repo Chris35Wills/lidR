@@ -99,29 +99,31 @@ rumple_index.matrix <- function(x, y = NULL, z = NULL, ...)
 #' @export
 rumple_index.numeric <- function(x, y = NULL, z = NULL, ...)
 {
-  xtxt   = lazyeval::expr_text(x)
-  ytxt   = lazyeval::expr_text(y)
-  ztxt   = lazyeval::expr_text(z)
+  assertive::assert_is_numeric(x)
+  assertive::assert_is_numeric(y)
+  assertive::assert_is_numeric(z)
+  assertive::assert_are_same_length(x,y)
+  assertive::assert_are_same_length(x,z)
 
-  if (!is.numeric(y) | !is.numeric(z))
-    stop("y or z is missing.", call. = FALSE)
+  if (length(x) <= 3)
+    return (NA_real_)
 
-  if (length(x) != length(y))
-    stop(paste0(xtxt, " is not same length as ", ytxt), call. = FALSE)
+  rumple = tryCatch(
+  {
+    X = cbind(x,y,z)
+    dn = suppressMessages(geometry::delaunayn(X[,1:2], options = "QbB"))
+    N = C_tinfo(dn, X)
+    area  = sum(N[,5])
+    parea = sum(N[,6])
+    return(area/parea)
+  },
+  error = function(e)
+  {
+    message(paste0(e, "\n'rumple_index' returned NA."))
+    if (LIDROPTIONS("debug")) dput(X[,1:2])
+    return(NA_real_)
+  })
 
-  if (length(x) != length(z))
-    stop(paste0(xtxt, " is not same length as ", ztxt), call. = FALSE)
-
-  if (length(x) != length(y) | length(x) != length(z))
-    stop("Different lengths for x,y,z", call. = FALSE)
-
-  X = cbind(x,y,z)
-  dn = suppressMessages(geometry::delaunayn(X[,1:2], options = "QbB"))
-  N = C_tinfo(dn, X)
-
-  area  = sum(N[,5])
-  parea = sum(N[,6])
-  rumple = area/parea
   return(rumple)
 }
 

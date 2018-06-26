@@ -1,9 +1,42 @@
 ## lidR v1.6.0 (in development)
 
-### NEW FEATURE
+#### NEW FEATURE
 
 * New function `tree_hulls` that computes a convex or concave hull for each segmented tree.
 * New function `catalog_flighlines` that returns a `SpatialPolygonsDataFrame` of concave hull of the flighlines
+* New option `stop_early` to process a catalog until the end anyway or stop before the end if an error is raised.
+* New function `catalog_retile` supersede the function `catalog_reshape` being able to do the same and much more.
+
+#### ENHANCEMENTS
+
+* When processing a `LAScatalog`, error handling has been seriouly improved. A process can now run until the end even with errors. In this that case clusters with errors are skipped.
+* When processing  a `LAScatalog`, the graphical progress now use 3 colors. green: ok, red: error, gray: null.
+* `as.spatial()` for `LAS` object preserves the CRS.
+* All the functions have now strong assertions to check user inputs.
+* `plot.LAScatalog` always displays the catalog with `mapview` by default even if the CRS is empty.
+* In `lastrees_dalponte` the matching between the seeds and the canopy is more tolerant. Raster can have different resolution and/or extent.
+
+#### OTHER CHANGE
+
+* `catalog()` displays a message when finding overlaps between files.
+* The LAScatalog class is much better documented.
+
+#### BUG FIXES
+
+* `lasscanline()` did not computed the scanline because the conditionnal statement that checked if the field was properly populated was incorrect.
+
+## lidR v1.5.2 (In development)
+
+* [[#146](https://github.com/Jean-Romain/lidR/issues/146)] Fix matching between tree tops raster and canopy raster.
+
+## lidR v1.5.1 (2018-06-14)
+
+#### BUG FIXES
+
+* The area of a `LAScatalog` was wrongly computed for non square tiles because of a bad copy/paste in the code.
+* [[#135](https://github.com/Jean-Romain/lidR/issues/135)] Fix `NULL` class objects returned by `grid_*` functions when processing a `LAScatalog` if the first cluster is empty.
+* [[#143](https://github.com/Jean-Romain/lidR/issues/143)] `rumple_index` returns `NA` if not computable.
+>>>>>>> devel
 
 ## lidR v1.5.0 (2018-05-13)
 

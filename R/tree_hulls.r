@@ -64,6 +64,57 @@
 #'
 tree_hulls = function(las, type = c("convex", "concave"), concavity = 3, length_threshold = 0, field = "treeID")
 {
-  type = match.arg(type)
-  lasaggregatepolygons(las, type, concavity, length_threshold, field)
+  stopifnotlas(las)
+  type <- match.arg(type)
+  assertive::assert_is_a_number(concavity)
+  assertive::assert_all_are_non_negative(concavity)
+  assertive::assert_is_a_number(length_threshold)
+  assertive::assert_all_are_non_negative(length_threshold)
+  assertive::assert_is_a_string(field)
+
+  X <- Y <- tree <- NULL
+
+  if (type == "convex")
+    dt = las@data[, stdtreehullconvex(X,Y, .GRP), by = field]
+  else
+    dt = las@data[, stdtreehullconcave(X,Y, .GRP, concavity, length_threshold), by = field]
+
+  data.table::setnames(dt, names(dt), c("tree", "poly"))
+  dt = dt[!is.na(tree)]
+
+  spoly = sp::SpatialPolygons(dt$poly)
+
+  for (i in 1:length(spoly)) spoly@polygons[[i]]@ID = as.character(i)
+
+  data = data.frame(dt[, 1])
+  spdf = sp::SpatialPolygonsDataFrame(spoly, data)
+  sp::proj4string(spdf)<-las@crs
+
+  return(spdf)
+}
+
+stdtreehullconvex = function(x,y, grp)
+{
+  if (length(x) < 4)
+    return(NULL)
+
+  i = grDevices::chull(x,y)
+  i = c(i, i[1])
+  P = cbind(x[i], y[i])
+  poly = sp::Polygon(P)
+  poly = sp::Polygons(list(poly), ID = grp)
+
+  list(poly = list(poly))
+}
+
+stdtreehullconcave = function(x,y, grp, concavity, length_threshold)
+{
+  if (length(x) < 4)
+    return(NULL)
+
+  P = concaveman::concaveman(cbind(x,y), concavity, length_threshold)
+  poly = sp::Polygon(P)
+  poly = sp::Polygons(list(poly), ID = grp)
+
+  list(poly = list(poly))
 }

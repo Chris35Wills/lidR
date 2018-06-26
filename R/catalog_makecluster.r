@@ -27,10 +27,13 @@
 
 catalog_makecluster = function(ctg, res, start = c(0,0), plot = TRUE)
 {
-  xmin <- ymin <- xmax <- ymax <- 0
-  buffer <- buffer(ctg)
+  xmin    <- ymin <- xmax <- ymax <- 0
+  buffer  <- buffer(ctg)
   by_file <- by_file(ctg)
-  size <- tiling_size(ctg)
+  size    <- tiling_size(ctg)
+
+  # Creation of a set rectangle that encompass the catalog
+  # =======================================================
 
   if (by_file)
   {
@@ -47,13 +50,11 @@ catalog_makecluster = function(ctg, res, start = c(0,0), plot = TRUE)
     # rounded up to a multiple of the resolution
     width = ceiling(size/res) * res
 
-    verbose("Computing the bounding box of the catalog...")
-
     # Bounding box of the catalog
     bbox = with(ctg@data, c(min(`Min X`), min(`Min Y`), max(`Max X`), max(`Max Y`)))
 
     # Buffer around the bbox as a multiple of the resolution
-    # This enable to start and end clusters at exact mutilples of the resolution.
+    # This enables to start and end clusters at exact mutilples of the resolution.
     buffered_bbox = bbox + c(-res, -res, +res, +res)
     buffered_bbox = round_any(buffered_bbox, res)
     buffered_bbox = buffered_bbox + c(-res, -res, +res, +res)
@@ -63,8 +64,6 @@ catalog_makecluster = function(ctg, res, start = c(0,0), plot = TRUE)
 
     # Shift the bounding box to match with the start parameter (grid_metrics)
     buffered_bbox = buffered_bbox + c(start[1], start[2], start[1], start[2])
-
-    verbose("Creating a set of cluster coordinates for the catalog...")
 
     # Generate coordinates of clusters
     xmin = seq(buffered_bbox[1], buffered_bbox[3], width)
@@ -89,8 +88,39 @@ catalog_makecluster = function(ctg, res, start = c(0,0), plot = TRUE)
   height  = ymax - ymin
   names   = paste0("ROI", 1:length(xcenter))
 
-  clusters = suppressWarnings(catalog_index(ctg, xcenter, ycenter, width, height, buffer, names))
+  # Creation of a set of cluster from the rectangles
+  # ================================================
 
+  if (by_file && buffer <= 0)
+  {
+    clusters = lapply(1:length(xcenter), function(i)
+    {
+      center = list(x = xcenter[i], y = ycenter[i])
+      Cluster(center, width[i], height[i], buffer, LIDRRECTANGLE, ctg@data$filename[i], names[i])
+    })
+  }
+  else
+  {
+    clusters = suppressWarnings(catalog_index(ctg, xcenter, ycenter, width, height, buffer, names))
+  }
+
+  # Post process the clusters
+  # =========================
+
+  # Specific case for computation speed
+  # -----------------------------------
+
+  if (by_file & buffer == 0)
+  {
+    clusters <- lapply(clusters, function(x)
+    {
+      x@filter <- ""
+      return(x)
+    })
+  }
+
+  # Record the path to write the raster if requested
+  # ------------------------------------------------
 
   if (save_vrt(ctg))
   {
@@ -101,6 +131,8 @@ catalog_makecluster = function(ctg, res, start = c(0,0), plot = TRUE)
     })
   }
 
+  # Plot the catalog and the clusters
+  # =================================
 
   if(plot)
   {
@@ -113,7 +145,7 @@ catalog_makecluster = function(ctg, res, start = c(0,0), plot = TRUE)
     {
       graphics::rect(x@bbox$xmin, x@bbox$ymin, x@bbox$xmax, x@bbox$ymax, border = "red")
 
-      if (x@buffer > 0)
+      if (x@buffer != 0)
         graphics::rect(x@bbbox$xmin, x@bbbox$ymin, x@bbbox$xmax, x@bbbox$ymax, border = "darkgreen", lty = "dotted")
     })
   }
